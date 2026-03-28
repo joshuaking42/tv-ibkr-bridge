@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虛擬環境
+venv/
+.venv/
+env/
+
+# 環境變數（含敏感資訊，絕對不要 commit）
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Kiro spec 設定（選用，如果你想保留 spec 在 repo 裡可以移除這行）
+# .kiro/

@@ -1,0 +1,45 @@
+# TradingView-IBKR Bridge Docker Compose 配置
+# 定義 bridge（Flask 應用程式）與 ib-gateway（IB Gateway 容器）兩個服務
+# 敏感環境變數使用 ${VAR} 語法，從 .env 檔案載入
+
+name: tv-ibkr-bridge
+
+services:
+  # Bridge 服務：Flask 應用程式，接收 TradingView Webhook 並執行交易
+  bridge:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      # Webhook 驗證密鑰（從 .env 載入）
+      - WEBHOOK_TOKEN=${WEBHOOK_TOKEN}
+      # IB Gateway 連線設定（透過 Docker 內部網路連線）
+      - IB_HOST=ib-gateway
+      - IB_PORT=4002
+      - IB_CLIENT_ID=1
+      # 使用資產比例，預設 95%
+      - USE_EQUITY_PCT=0.95
+      # Discord 通知 Webhook URL（從 .env 載入）
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    # 等待 ib-gateway 健康檢查通過後才啟動
+    depends_on:
+      ib-gateway:
+        condition: service_healthy
+
+  # IB Gateway 服務：無頭 IB Gateway 容器，維持與 Interactive Brokers 的連線
+  ib-gateway:
+    image: ghcr.io/extt/ib-gateway:latest
+    environment:
+      # IB 帳號與密碼（從 .env 載入）
+      - IB_ACCOUNT=${IB_ACCOUNT}
+      - IB_PASSWORD=${IB_PASSWORD}
+      # 交易模式：paper（模擬）或 live（實盤）
+      - TRADING_MODE=paper
+    # 健康檢查：確認 IB Gateway 已在 4002 埠就緒
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "4002"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "4002:4002"

@@ -1,0 +1,6 @@
+flask
+ib_insync
+nest_asyncio
+requests
+pytest
+hypothesis
