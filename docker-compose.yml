@@ -35,6 +35,9 @@ services:
       - IB_PASSWORD=${IB_PASSWORD}
       # 交易模式：paper（模擬）或 live（實盤）
       - TRADING_MODE=paper
+      # 允許 Docker 內部網路的容器連線（解決 TrustedIPs 白名單問題）
+      - TWS_SETTINGS_PATH=
+      - TRADING_MODE_TRUSTED_IPS=0.0.0.0/0
     # 健康檢查：確認 IB Gateway TWS API 已在 4002 埠就緒
     healthcheck:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4002"]
