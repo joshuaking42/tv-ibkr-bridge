@@ -35,11 +35,12 @@ services:
       - IB_PASSWORD=${IB_PASSWORD}
       # 交易模式：paper（模擬）或 live（實盤）
       - TRADING_MODE=paper
-    # 健康檢查：確認 IB Gateway 已在 4002 埠就緒
+    # 健康檢查：確認 IB Gateway TWS API 已在 4002 埠就緒
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "4002"]
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4002"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     ports:
       - "4002:4002"
