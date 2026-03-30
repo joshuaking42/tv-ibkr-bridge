@@ -42,8 +42,15 @@ def main() -> None:
         notifier=notifier,
     )
 
-    # 嘗試連線至 IB Gateway（失敗僅警告，不終止啟動）
-    if not ib_manager.connect():
+    # 嘗試連線至 IB Gateway（最多重試 12 次，每次間隔 10 秒）
+    for attempt in range(12):
+        if ib_manager.connect():
+            break
+        if attempt < 11:
+            logger.warning("啟動時無法連線至 IB Gateway，10 秒後重試 (%d/12)", attempt + 1)
+            import time
+            time.sleep(10)
+    else:
         logger.warning("啟動時無法連線至 IB Gateway，將在收到請求時重試")
 
     # 初始化訂單路由器

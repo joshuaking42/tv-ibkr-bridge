@@ -15,7 +15,7 @@ services:
       - WEBHOOK_TOKEN=${WEBHOOK_TOKEN}
       # IB Gateway 連線設定（透過 Docker 內部網路連線）
       - IB_HOST=ib-gateway
-      - IB_PORT=4002
+      - IB_PORT=4004
       - IB_CLIENT_ID=1
       # 使用資產比例，預設 95%
       - USE_EQUITY_PCT=0.95
@@ -30,20 +30,26 @@ services:
   ib-gateway:
     image: ghcr.io/gnzsnz/ib-gateway:latest
     environment:
-      # IB 帳號與密碼（從 .env 載入）
-      - IB_ACCOUNT=${IB_ACCOUNT}
-      - IB_PASSWORD=${IB_PASSWORD}
+      # IB 帳號與密碼（gnzsnz/ib-gateway 映像使用 TWS_USERID/TWS_PASSWORD）
+      - TWS_USERID=${IB_ACCOUNT}
+      - TWS_PASSWORD=${IB_PASSWORD}
+      # 自動接受 API 連線請求（避免無頭模式下彈出確認對話框）
+      - TWS_ACCEPT_INCOMING=accept
+      # 關閉 Read-Only API 模式，允許下單
+      - READ_ONLY_API=no
       # 交易模式：paper（模擬）或 live（實盤）
       - TRADING_MODE=paper
-      # 允許 Docker 內部網路的容器連線（解決 TrustedIPs 白名單問題）
-      - TWS_SETTINGS_PATH=
-      - TRADING_MODE_TRUSTED_IPS=0.0.0.0/0
+    volumes:
+      # 掛載自訂 IBC config，設定 TrustedTwsApiClientIPs 允許 Docker 內部網路
+      - ./ibc_config.ini.tmpl:/home/ibgateway/ibc/config.ini.tmpl:ro
+    # 啟動前刪除舊的 jts.ini，讓 IBC 從 template 重新生成（含 TrustedIPs=0.0.0.0/0）
+    command: bash -c "rm -f /home/ibgateway/Jts/jts.ini && exec /home/ibgateway/scripts/run.sh"
     # 健康檢查：確認 IB Gateway TWS API 已在 4002 埠就緒
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4002"]
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4004"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 30
+      start_period: 120s
     ports:
-      - "4002:4002"
+      - "4002:4004"
