@@ -28,7 +28,7 @@ services:
 
   # IB Gateway 服務：無頭 IB Gateway 容器，維持與 Interactive Brokers 的連線
   ib-gateway:
-    image: ghcr.io/extt/ib-gateway:latest
+    image: ghcr.io/gnzsnz/ib-gateway:latest
     environment:
       # IB 帳號與密碼（從 .env 載入）
       - IB_ACCOUNT=${IB_ACCOUNT}
